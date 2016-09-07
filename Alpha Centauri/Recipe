@@ -28,14 +28,15 @@ echo
 popd >/dev/null
 
 # install compat libs
-tar -xjf loki_compat_libs-1.5.tar.bz2 --strip-components=1 -C /usr/local/lib
-ln -s /usr/local/lib/ld-linux.so.2 /lib/ld-linux.so.2
-ln -s /usr/local/lib/libc.so.6 /lib/libc.so.6
+[ -e /usr/local/lib/Loki_Compat ] || mkdir /usr/local/lib/Loki_Compat
+tar -xjf loki_compat_libs-1.5.tar.bz2 --strip-components=1 -C /usr/local/lib/Loki_Compat
 
 # install the patch
 tar -xjf smacpatch-x86.tar.bz2 -C /tmp
 pushd /tmp/smac-6.0a-x86 >/dev/null
-bin/Linux/x86/loki_patch patch.dat /usr/local/games/smac
+ln -s /usr/local/lib/Loki_Compat/ld-linux.so.2 /lib/ld-linux.so.2
+LD_LIBRARY_PATH=/usr/local/lib/Loki_Compat bin/Linux/x86/loki_patch patch.dat /usr/local/games/smac
+rm /lib/ld-linux.so.2
 popd >/dev/null
 
 # prepare AppImage destination dir
@@ -50,11 +51,11 @@ mkdir "$APPDIR"/usr/local/games
 mkdir "$APPDIR"/usr/local/lib
 mkdir "$APPDIR"/usr/share
 mkdir "$APPDIR"/usr/share/icons
-cp /lib/ld-linux.so.2 "$APPDIR"/lib/ld-linux.so.2
-cp /lib/libc.so.6 "$APPDIR"/lib/libc.so.6
+cp /usr/local/lib/Loki_Compat/ld-linux.so.2 "$APPDIR"/lib/ld-linux.so.2
+cp /usr/local/lib/Loki_Compat/libc.so.6 "$APPDIR"/lib/libc.so.6
 cp -r /usr/local/bin/ "$APPDIR"/usr/local/
 cp -r /usr/local/games/ "$APPDIR"/usr/local/
-cp -r /usr/local/lib/ "$APPDIR"/usr/local/
+cp -r /usr/local/lib/Loki_Compat/* "$APPDIR"/usr/local/lib
 cp /cdrom/icon.bmp "$APPDIR"/usr/share/icons/smac.bmp
 cp smac.desktop "$APPDIR"
 
@@ -77,10 +78,13 @@ LD_LIBRARY_PATH=local/lib local/lib/ld-linux.so.2 local/games/smac/smacx.dynamic
 " > "$APPDIR"/usr/bin/smacx.dynamic
 chmod a+x "$APPDIR"/usr/bin/smacx.dynamic
 [ -e /out ] || mkdir /out
+. ../functions.sh
 pushd /tmp >/dev/null
-wget -c https://github.com/probonopd/AppImageKit/releases/download/6/AppRun_6-x86_64 -O "$APPDIR"/AppRun
-chmod a+x "$APPDIR"/AppRun
-wget -c "https://github.com/probonopd/AppImageKit/releases/download/5/AppImageAssistant"
-chmod a+x ./AppImageAssistant
-./AppImageAssistant "$APPDIR" /out/smac-6.0a-i386.AppImage
+pushd "$APPDIR" >/dev/null
+get_apprun
+popd
+APP=smac
+VERSION=6.0a
+ARCH=i386
+generate_appimage
 popd >/dev/null
