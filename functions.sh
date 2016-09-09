@@ -39,8 +39,9 @@ patch_usr()
 # Download AppRun and make it executable
 get_apprun()
 {
-  # wget -c https://github.com/probonopd/AppImageKit/releases/download/5/AppRun -O ./AppRun # 64-bit
-  wget -c https://github.com/probonopd/AppImageKit/releases/download/6/AppRun_6-x86_64 -O AppRun # 64-bit
+  # You can optionally set $ARCH to be x86_64 or i686
+  [ -n "$ARCH" ] || ARCH="x86_64"
+  wget -c https://github.com/probonopd/AppImageKit/releases/download/6/AppRun_6-"$ARCH" -O AppRun
   chmod a+x AppRun
 }
 
@@ -106,10 +107,12 @@ generate_appimage()
   #   echo "" >> ./$APP.AppDir/Recipe
   #   cat $RECIPE >> ./$APP.AppDir/Recipe
   # fi
-  wget -c "https://github.com/probonopd/AppImageKit/releases/download/5/AppImageAssistant" # (64-bit)
+  # You can optionally set $ARCH to be x86_64 or i686
+  [ -n "$ARCH" ] || ARCH="x86_64"
+  wget -c "https://github.com/probonopd/AppImageKit/releases/download/6/AppImageAssistant_6-$ARCH.AppImage" -O AppImageAssistant
   chmod a+x ./AppImageAssistant
   mkdir -p ../out
-  rm ../out/$APP"-"$VERSION"-x86_64.AppImage" || true
+  rm ../out/$APP"-"$VERSION"-"$ARCH".AppImage" || true
   ./AppImageAssistant ./$APP.AppDir/ ../out/$APP"-"$VERSION"-"$ARCH".AppImage"
 }
 
